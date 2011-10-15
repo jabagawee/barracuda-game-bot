@@ -87,9 +87,55 @@ def get_move(s):
         else:
             return {'move': "request_discard", 'idx' : rlIndex + partOfRunLength[rlIndex] - 1}
 
+def get_deck_exchange(game_id, remaining_microseconds, rack, card):
+        index = (card-1)/4
+        while index< len(rack)-1 and rack[index+1] < index :
+            index += 1
+        return index
+    
+def inQuadrant(num, position) :
+    int upperBound = (num-1)/4 + 3
+    int lowerBound = (num-1)/4 - 3
+    if position < upperBound and position > lowerBound :
+        return True
+    return False
 
-def get_deck_exchange(s):
-    pass
+
+def inRunLength(runLengths, index):
+    i=0
+    while i<len(runLengths):
+        if runLengths[i] > 0 : #run length
+            if(index >= i and index < (i+runLengths[i]) ):
+                return i
+    return -1
+
+
+def discardIsGood (rack, discard) :
+    placement = (discard-1)/4
+    if placement+1>=rack.length or rack[placement+1] > discard :
+        return True
+    return False
+}
+
+def getBlocked(rack) :
+    blocks
+    lastValue = rack[0]
+    run = 1
+    i=1
+    while i< len(rack) :
+        if(rack[i] == lastValue+1)
+            run+=1
+        elif run > 1 :
+            j=0
+            while(j<run):
+                blocks.add(i-j)
+                j+=1
+            
+            run = 1
+        
+        i+=1
+    return blocks
+
 
 # locked
 def move_result(s):
