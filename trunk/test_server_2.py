@@ -11,11 +11,13 @@ server = SimpleXMLRPCServer(("172.16.126.188", 8080), requestHandler=RequestHand
 server.register_introspection_functions()
 
 # Variables to store state
+discard_pile = []
 top_discard, not_top_discard = 0, set()
 opponent_range = set(range(1,80+1))
 opponent_rack = [0] * 20
 game_just_started = False
-turncount=0
+prev_discard=0
+turn_count=1
 
 # locked
 def ping(x):
@@ -32,25 +34,158 @@ def start_game(s):
     print("We are player %s." %(0 if game_just_started else 1))
     return ''
 
-
-
 def get_move(s):
-    global turncount
     global game_just_started
-    global turncount
+    
+    rack=s['rack']
+    discard=s['discard']
+    prev_discard=discard
+    
     if game_just_started:
         game_just_started = False
-        return {'move' : 'request_discard', 'idx' : random.randint(0, 19)}
+    else:
+        card_tracker(rack, 0, prev_discard, s['other_player_moves'], 1)
 
-    total=0
-    rack=s['rack']
+    print("checkpoint 1")
+
+    global turn_count
+    if turn_count <= 10:
+        turn_count += 1
+        a={'move' : 'request_deck'}
+        card_tracker(rack, discard, 0, a, 0)
+        return a
+    turn_count += 1
+
+    print("checkpoint 2")
     
-    turncount+=1
-    return {'move' : 'request_discard', 'idx' : (s['discard']-1)/4}
-    pass
+    partOfRunLength = [0] * 20
+    i = 0
+    rack = s['rack']
+    discard = s['discard']
+    while i < len(rack):
+        partOfRunLength[i] = 0
+        i += 1
+    lastValue = rack[0]
+    runLength = 1
+    i = 1
+    while i < len(rack):
+        if rack[i] == lastValue + 1:
+            runLength += 1
+            if inQuadrant(rack[i], i): 
+                j = 0
+                while j < runLength:
+                    partOfRunLength[i - j] = 0
+                    j += 1
+                
+                partOfRunLength[i - runLength + 1] = runLength
+            
+        else:
+            runLength = 1
+        lastValue = rack[i]
+        i+=1
 
-def get_deck_exchange(s):
-    pass
+    print("checkpoint 3")
+    
+    i = 0
+    while i < len(partOfRunLength):
+        rl = partOfRunLength[i]
+        if rl > 1:
+            if i - 1 > 0 and discard == rack[i] - 1:
+                a= {'move': "request_discard", 'idx' : i - 1}
+                card_tracker(rack, discard, 0, a, 0)
+                return a
+            if i + rl < len(rack) and discard == rack[i + rl - 1] + 1:
+                a= {'move': "request_discard", 'idx' : i+rl}
+                card_tracker(rack, discard, 0, a, 0)
+                return a
+        
+        i += 1
+    
+    print("checkpoint 4")
+    
+    divideByFour = (discard-1)/4
+    rlIndex = inRunLength(partOfRunLength, divideByFour)
+    if rlIndex > -1:
+        lowerBound = rack[rlIndex]
+        if rlIndex == 0:
+            a= {'move': "request_discard", 'idx' : 0}
+            card_tracker(rack, discard, 0, a, 0)
+            return a
+        if rlIndex + partOfRunLength[rlIndex] - 1 > 19:
+            a= {'move': "request_discard", 'idx' : 19}
+            card_tracker(rack, discard, 0, a, 0)
+            return a
+
+        if discard < lowerBound:
+            a= {'move': "request_discard", 'idx' : rlIndex-1}
+            card_tracker(rack, discard, 0, a, 0)
+            return a
+        else:
+            a= {'move': "request_discard", 'idx' : rlIndex + partOfRunLength}
+            card_tracker(rack, discard, 0, a, 0)
+            return a
+
+    print("checkpoint 5")
+        
+    a={'move' : 'request_deck'}
+    card_tracker(rack, discard, 0, a, 0)
+    return a
+
+def get_deck_exchange(game_id, remaining_microseconds, rack, card):
+    return (s['card']-1)/4
+    
+def inQuadrant(num, position) :
+    upperBound = (num-1)/4 + 3
+    lowerBound = (num-1)/4 - 3
+    if position < upperBound and position > lowerBound :
+        return True
+    return False
+
+
+def inRunLength(runLengths, index):
+    i=0
+    while i<len(runLengths):
+        if runLengths[i] > 0 : #run length
+            if(index >= i and index < (i+runLengths[i]) ):
+                return i
+    return -1
+
+
+def discardIsGood (rack, discard) :
+    placement = (discard-1)/4
+    if placement+1>=rack.length or rack[placement+1] > discard :
+        return True
+    return False
+
+
+def getBlocked(rack) :
+    blocks = []
+    lastValue = rack[0]
+    run = 1
+    i=1
+    while i< len(rack) :
+        if rack[i] == lastValue+1:
+            run+=1
+        elif run > 1 :
+            j=0
+            while(j<run):
+                blocks.append(i-j)
+                j+=1
+            run = 1
+        i+=1
+    return blocks
+
+def card_tracker(rack, discard, prev_discard, move, player):
+    global opponent_rack, discard_pile
+    if player==0:
+        if move['move']=='take_deck':
+            discard_pile.append[discard]
+    elif player==1:
+        if len(oppmove)!=0 and move['move']=='take_discard':
+            opponent_rack[ move['idx'] ]=prev_discard
+        elif len(oppmove)!=0 and move['move']=='take_deck':
+            discard_pile.append[prev_discard]
+            opponent_rack[ move['idx'] ] == 0
 
 # locked
 def move_result(s):
