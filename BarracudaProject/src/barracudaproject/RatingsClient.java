@@ -22,6 +22,8 @@ public class RatingsClient extends Client {
         int[] intervals= new int[19];
 
         int j=0;
+        int closest=80;
+        int closestindex=0;
 
         for(int i=0; i<20; i++){
             ranges[i][0]=j;
@@ -38,12 +40,24 @@ public class RatingsClient extends Client {
             }
 
             //gets intervals between each slot in rack
-            for(int k=0; k<19;k++){
-                intervals[k]=rack[i+1]-rack[i];
+            for(int k=0; k<19; k++){
+                intervals[k]=rack[k+1]-rack[k];
             }
+            
+            //closest slot to discard
+            int tempclosest=discard-averages[i];
+            if(tempclosest<closest){
+                closest=tempclosest;
+                closestindex=i;
+            }
+            
         }
         
-      return new Move(0, "request_discard", 0, "bah");
+        if(ratings[closestindex]==0){
+            return new Move(0, "request_discard", closestindex, "bah");
+        }
+        
+        return new Move(0, "request_discard", 0, "bah");
     }
     
 }
