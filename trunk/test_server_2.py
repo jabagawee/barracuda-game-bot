@@ -1,5 +1,5 @@
-from SimpleXMLRPCServer import SimpleXMLRPCServer
-from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
+from xmlrpc.server import SimpleXMLRPCServer
+from xmlrpc.server import SimpleXMLRPCRequestHandler
 import random
 
 # Restrict to a particular path.
@@ -7,7 +7,7 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/RPC2',)
 
 # Create server
-server = SimpleXMLRPCServer(("172.16.73.133", 8080), requestHandler=RequestHandler)
+server = SimpleXMLRPCServer(("172.16.126.188", 8080), requestHandler=RequestHandler)
 server.register_introspection_functions()
 
 # Variables to store state
@@ -23,13 +23,13 @@ def ping(x):
 
 # half locked
 def start_game(s):
-    print "New game started."
+    print("New game started.")
     global top_discard
     top_discard = s['initial_discard']
-    print "Top discard card: %s" %(top_discard)
+    print("Top discard card: %s" %(top_discard))
     if s['player_id'] == 0:
         game_just_started = True
-    print "We are player %s." %(0 if game_just_started else 1)
+    print("We are player %s." %(0 if game_just_started else 1))
     return ''
 
 
@@ -54,13 +54,13 @@ def get_deck_exchange(s):
 
 # locked
 def move_result(s):
-    print "Move result: %s" %(s['move'])
+    print( "Move result: %s" %(s['move']))
     return ''
 
 # locked
 def game_result(s):
-    print "Game over because %s.\nYour score:  %s\nTheir score: %s" %(s['reason'], s['your_score'], s['other_score'])
-    print
+    print( "Game over because %s.\nYour score:  %s\nTheir score: %s" %(s['reason'], s['your_score'], s['other_score']))
+    print()
     return ''
 
 # functions that are defined in gamelogic.py
