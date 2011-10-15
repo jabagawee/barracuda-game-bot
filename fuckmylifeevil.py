@@ -27,8 +27,6 @@ turnNum = 0
 
 notTurnNumed = True
 
-iLoveCheating = False
-
 def ping(x):
     return 'pong' if x == 'ping' else 'fuck you'
 
@@ -66,7 +64,7 @@ def get_move(s):
     if s['discard'] in opponentKnownCards:
         opponentKnownCards.remove(s['discard'])
     
-    partOfRunLength = [0] * 20
+    partOfRunLength = [1] * 20
     lastValue = s['rack'][0]
     runLength = 1
     for i in xrange(1, 20):
@@ -87,9 +85,10 @@ def get_move(s):
         totalDistance += distanceFromOptimal[i]
 
     rlFound = 1
-    if isInOrder(s['rack']):
+    # if isInOrder(s['rack']):
+    if parityCount(s['rack']) < sys.argv[1]:
         for i in xrange(20):
-            if partOfRunLength[i] > 1:
+            if partOfRunLength[i] > 0:
                 rlFound = max(rlFound, partOfRunLength[i])
                 if s['discard'] == s['rack'][i] - 1 and i > 0:
                     new_rack = s['rack'][:]
@@ -99,27 +98,26 @@ def get_move(s):
                 if s['discard'] == s['rack'][i + partOfRunLength[i] - 1] + 1 and i + partOfRunLength[i] < 20:
                     return makeMove('request_discard', i + partOfRunLength[i], s['rack'])
 
-        if rlFound > 2:
-            print 'NOPEOLEOFOMGWTFBBQ'
-
-        if rlFound > 1 and turnNum > 70 - rlFound * 3 and iLoveCheating:
-            time.sleep(s['remaining_microseconds']/1000000 + 1.5)
-            print "ready for next game"
-
         if rlFound > 1 and turnNum > 55:
             for i in xrange(20):
                 new_rack = s['rack'][:]
                 new_rack[i] = s['discard']
                 if isInOrder(new_rack) and inRunLength(partOfRunLength, i) == -1:
-                    print "safe to make a discard, going for it GOTO"
-                    print "replacing %s with %s" %(s['rack'][i], s['discard'])
                     return makeMove('request_discard', i, s['rack'])
-            print "unsafe ever to make a replacement"
-            print "see rack and discard as follows"
-            print "rack: %s\ndiscard: %s" %(s['rack'], s['discard'])
 
         return makeMove('request_deck', 0, s['rack'])
         
+    min_parity = parityCount(s['rack'])
+    best_move = 50
+    for x in xrange(20):
+        new_rack = s['rack'][:]
+        new_rack[x] = s['discard']
+        if parityCount(new_rack) < min_parity:
+            min_parity = parityCount(new_rack)
+            best_move = x
+    if best_move != 50:
+        return makeMove('request_discard', best_move, s['rack'])
+
     if distanceFromOptimal[(s['discard'] - 1) / 4] == 0:
         return makeMove('request_deck', 0, s['rack']);
     else:
@@ -138,9 +136,10 @@ def makeMove(move, idx, rack):
 def get_deck_exchange(s):
     global partOfRunLength
 
-    if isInOrder(s['rack']):
+    # if isInOrder(s['rack']):
+    if parityCount(s['rack']) < sys.argv[1]:
         for i in xrange(20):
-            if partOfRunLength[i] > 1:
+            if partOfRunLength[i] > 0:
                 if s['card'] == s['rack'][i] - 1 and i > 0:
                     return deckExchange(i - 1, s['rack'])
                 if s['card'] == s['rack'][i + partOfRunLength[i] - 1] + 1 and i + partOfRunLength[i] < 20:
@@ -178,6 +177,19 @@ def inRunLength(runLengths, index):
             if index >= i and index < i + runLengths[i]:
                 return runLengths[i]
     return -1
+
+def parityCount(rack):
+    count = 0
+    oldValue = rack[0]
+    for x in xrange(1, 20):
+        if rack[x] < oldValue:
+            z = x
+            while rack[z] < oldValue and z > -1:
+                count += 1
+                z -= 1
+        oldValue = rack[x]
+    print count
+    return count
 
 def getPossibleCardsInDeck(myCards):
     possibles = set()
