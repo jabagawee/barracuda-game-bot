@@ -32,14 +32,22 @@ def start_game(s):
     print "We are player %s." %(0 if game_just_started else 1)
     return ''
 
+turn_count = 1
 def get_move(s):
     global game_just_started
     if game_just_started:
         game_just_started = False
 
+    global turn_count
+    if turn_count <= 10:
+        turn_count += 1
+        return {'move' : 'request_deck'}
+    turn_count += 1
+
     partOfRunLength = [0] * 20
     i = 0
     rack = s['rack']
+    discard = s['discard']
     while i < len(rack):
         partOfRunLength[i] = 0
         i += 1
@@ -86,16 +94,15 @@ def get_move(s):
             return {'move': "request_discard", 'idx' : rlIndex-1}
         else:
             return {'move': "request_discard", 'idx' : rlIndex + partOfRunLength[rlIndex] - 1}
+    
+    return {'move' : 'request_deck'}
 
-def get_deck_exchange(game_id, remaining_microseconds, rack, card):
-        index = (card-1)/4
-        while index< len(rack)-1 and rack[index+1] < index :
-            index += 1
-        return index
+def get_deck_exchange(s):
+    return (s['card']-1)/4
     
 def inQuadrant(num, position) :
-    int upperBound = (num-1)/4 + 3
-    int lowerBound = (num-1)/4 - 3
+    upperBound = (num-1)/4 + 3
+    lowerBound = (num-1)/4 - 3
     if position < upperBound and position > lowerBound :
         return True
     return False
@@ -103,10 +110,11 @@ def inQuadrant(num, position) :
 
 def inRunLength(runLengths, index):
     i=0
-    while i<len(runLengths):
+    while i < len(runLengths):
         if runLengths[i] > 0 : #run length
-            if(index >= i and index < (i+runLengths[i]) ):
+            if index >= i and index < (i+runLengths[i]):
                 return i
+        i += 1
     return -1
 
 
@@ -115,24 +123,21 @@ def discardIsGood (rack, discard) :
     if placement+1>=rack.length or rack[placement+1] > discard :
         return True
     return False
-}
 
 def getBlocked(rack) :
-    blocks
+    blocks = []
     lastValue = rack[0]
     run = 1
     i=1
     while i< len(rack) :
-        if(rack[i] == lastValue+1)
+        if rack[i] == lastValue+1:
             run+=1
         elif run > 1 :
             j=0
             while(j<run):
-                blocks.add(i-j)
+                blocks.append(i-j)
                 j+=1
-            
             run = 1
-        
         i+=1
     return blocks
 
