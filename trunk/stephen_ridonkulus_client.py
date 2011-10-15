@@ -106,12 +106,17 @@ def get_move(s):
             time.sleep(s['remaining_microseconds']/1000000 + 1.5)
             print "ready for next game"
 
-        if rlFound > 1 and turnNum > 60:
+        if rlFound > 1 and turnNum > 55:
             for i in xrange(20):
                 new_rack = s['rack'][:]
                 new_rack[i] = s['discard']
                 if isInOrder(new_rack) and inRunLength(partOfRunLength, i) == -1:
+                    print "safe to make a discard, going for it GOTO"
+                    print "replacing %s with %s" %(s['rack'][i], s['discard'])
                     return makeMove('request_discard', i, s['rack'])
+            print "unsafe ever to make a replacement"
+            print "see rack and discard as follows"
+            print "rack: %s\ndiscard: %s" %(s['rack'], s['discard'])
 
         return makeMove('request_deck', 0, s['rack'])
         
@@ -133,7 +138,6 @@ def makeMove(move, idx, rack):
 def get_deck_exchange(s):
     global partOfRunLength
 
-    index = (s['card'] - 1) / 4
     if isInOrder(s['rack']):
         for i in xrange(20):
             if partOfRunLength[i] > 1:
@@ -142,7 +146,13 @@ def get_deck_exchange(s):
                 if s['card'] == s['rack'][i + partOfRunLength[i] - 1] + 1 and i + partOfRunLength[i] < 20:
                     return deckExchange(i + partOfRunLength[i], s['rack'])
 
-    return deckExchange(index, s['rack'])
+    for i in xrange(20):
+        new_rack = s['rack'][:]
+        new_rack[i] = s['card']
+        if isInOrder(new_rack) and inRunLength(partOfRunLength, i) == -1:
+            return deckExchange(i, s['rack'])
+
+    return deckExchange((s['card']) / 4, s['rack'])
 
 def deckExchange(index, rack):
     global discards
