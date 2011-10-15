@@ -20,7 +20,7 @@ public class BarracudaProject {
         int p1scoreTot = 0;
         int p2scoreTot = 0;
         
-        Client player1 = new GetRandomReplaceClient("grc1");
+        Client player1 = new RatingsClient("grc1");
         Client player2 = new DivideFourClient("sjcc2");
         
         for(int i = 0; i < trials; i++) {
