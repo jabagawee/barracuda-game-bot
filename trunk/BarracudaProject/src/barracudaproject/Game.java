@@ -206,7 +206,7 @@ public class Game {
                     maxSequence = Math.max(sequence, maxSequence);
                     sequence = 1;
                 }
-                lastValue = hand[i]-1;
+                lastValue = hand[i];
             }
             points += maxSequence*10;
         }
