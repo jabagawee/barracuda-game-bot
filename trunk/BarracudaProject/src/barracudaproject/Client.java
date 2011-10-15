@@ -69,6 +69,8 @@ public class Client {
     protected void printRack(int[] rack) {
         System.out.print(name+"'s Rack: [");
         for(int i = 0; i<rack.length; i++) {
+            if(rack[i]/10 == 0)
+                System.out.print(0);
             System.out.print(rack[i]+",");
         }
         System.out.println("]");
