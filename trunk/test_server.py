@@ -32,20 +32,28 @@ def start_game(s):
     print "We are player %s.\n" %(0 if game_just_started else 1)
     return ''
 
+turns = 1
 def get_move(s):
     # return {'move' : 'request_discard', 'idx' : -1}
     global game_just_started
     if game_just_started:
         game_just_started = False
         return {'move' : 'request_discard', 'idx' : random.randint(0, 19)}
+
+    global turns
+    if turns <= 20:
+        turns += 1
+        return {'move' : 'request_deck'}
+    turns += 1
+
     d = s['discard']
     r = s['rack']
     if d - 1 in r and r.index(d - 1) < 19 and abs((r.index(d - 1) + 1) * 4 - d) < 3:
         print 'request_discard @ %s' %(r.index(d-1)+1)
         return {'move' : 'request_discard', 'idx' : r.index(d-1) + 1}
-    elif d - 2 in r and r.index(d - 2) < 18 and abs((r.indx(d - 1) + 1) * 4 - d) < 3:
-        print 'request_discard @ %s' %(r.index(d-2)+2)
-        return {'move' : 'request_discard', 'idx' : r.index(d-2) + 2}
+    # elif d - 2 in r and r.index(d - 2) < 18 and abs((r.indx(d - 1) + 1) * 4 - d) < 3:
+    #     print 'request_discard @ %s' %(r.index(d-2)+2)
+    #     return {'move' : 'request_discard', 'idx' : r.index(d-2) + 2}
     # elif d - 3 in r and r.index(d - 3) < 17:
     #     return {'move' : 'request_discard', 'idx' : r.index(d-3) + 3}
     else:
@@ -55,16 +63,24 @@ def get_move(s):
 def get_deck_exchange(s):
     r = s['rack'] # [int] * 20
     c = s['card'] # int
-    if c - 1 in r and r.index(c - 1) < 19 and abs((r.index(c - 1) + 1) * 4 - c) < 3:
+
+    if turns <= 20:
+        return (c - 1) / 4
+
+    if c - 1 not in r and c - 2 not in r:
+        print 'request_deck @ %s' %((c-1)/4)
+        return (c - 1) / 4
+    elif c - 1 in r and r.index(c - 1) < 19 and abs((c-1)/4 - r.index(c-1)+1) < 3:
         print 'request_deck @ %s' %(r.index(c-1)+1)
         return r.index(c - 1) + 1
-    elif c - 2 in r and r.index(c - 2) < 18 and abs((r.index(c - 1) + 1) * 4 - c) < 3:
-        print 'request_deck @ %s' %(r.index(c-2)+2)
-        return r.index(c - 2) + 2
+    # elif c - 2 in r and r.index(c - 2) < 18 and abs((c-1)/4 - r.index(c-2)+2) < 3:
+    #     print 'request_deck @ %s' %(r.index(c-2)+2)
+    #     return r.index(c - 2) + 2
     # elif c - 3 in r and r.index(c - 3) < 17:
     #     return r.index(c - 3) + 3
     else:
         print 'request_deck @ %s' %((c-1)/4)
+        # replace this with something that doesn't break stuff
         return (c - 1) / 4
 
 # locked
