@@ -41,8 +41,11 @@ def get_move(s):
     if game_just_started:
         game_just_started = False
         return {'move' : 'request_discard', 'idx' : random.randint(0, 19)}
-    if turncount>10:
-        
+
+    total=0
+    rack=s['rack']
+    
+    turncount+=1
     return {'move' : 'request_discard', 'idx' : (s['discard']-1)/4}
     pass
 
