@@ -1,13 +1,14 @@
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 import random
+import sys
 
 # Restrict to a particular path.
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/RPC2',)
 
 # Create server
-server = SimpleXMLRPCServer(("172.16.73.133", 8080), requestHandler=RequestHandler)
+server = SimpleXMLRPCServer(("172.16.73.133", int(sys.argv[1])), requestHandler=RequestHandler)
 server.register_introspection_functions()
 
 # Variables to store state
@@ -36,59 +37,55 @@ def get_move(s):
     if game_just_started:
         game_just_started = False
 
-    int[] partOfRunLength = new int[20];
-    i=0
-    while i<rack.length :
-        partOfRunLength[i] = 0;
-        i+=1
-    int lastValue = rack[0];
-    int runLength = 1;
-    i=1
-    while(i<rack.length):
-        if rack[i] == lastValue+1 :
-            runLength++;
-            if inQuadrant(rack[i], i) : 
-                j=0
-                while j<runLength):
-                    partOfRunLength[i-j] = 0;
-                    j+=1
+    partOfRunLength = [0] * 20
+    i = 0
+    rack = s['rack']
+    while i < len(rack):
+        partOfRunLength[i] = 0
+        i += 1
+    lastValue = rack[0]
+    runLength = 1
+    i = 1
+    while i < len(rack):
+        if rack[i] == lastValue + 1:
+            runLength += 1
+            if inQuadrant(rack[i], i): 
+                j = 0
+                while j < runLength:
+                    partOfRunLength[i - j] = 0
+                    j += 1
                 
-                partOfRunLength[i-runLength+1] = runLength;
+                partOfRunLength[i - runLength + 1] = runLength
             
-         else
-            runLength = 1;
-        lastValue = rack[i];
+        else:
+            runLength = 1
+        lastValue = rack[i]
         i+=1
-    }
-    //printRack(rack);
-    //printRack(partOfRunLength);
     
-    i=0
-    while i<partOfRunLength.length :
-        rl = partOfRunLength[i];
-        if rl > 1 : //runlength > 1
-            if i-1>0 && discard == rack[i]-1:
-                return {'move': "request_discard", 'idx' : i-1};
-            if i+rl<rack.length && discard == rack[i+rl-1]+1:
-                return {'move': "request_discard", 'idx' : i+rl};
+    i = 0
+    while i < len(partOfRunLength):
+        rl = partOfRunLength[i]
+        if rl > 1:
+            if i - 1 > 0 and discard == rack[i] - 1:
+                return {'move': "request_discard", 'idx' : i - 1}
+            if i + rl < len(rack) and discard == rack[i + rl - 1] + 1:
+                return {'move': "request_discard", 'idx' : i+rl}
         
-        i+=1
+        i += 1
     
     
-    divideByFour = (discard-1)/4;
-    rlIndex = inRunLength(partOfRunLength, divideByFour);
-    if rlIndex > -1 :
-        lowerBound = rack[rlIndex];
+    divideByFour = (discard-1)/4
+    rlIndex = inRunLength(partOfRunLength, divideByFour)
+    if rlIndex > -1:
+        lowerBound = rack[rlIndex]
         if rlIndex == 0:
-            return {'move': "request_discard", 'idx' : 0};
-        if rlIndex+partOfRunLength[rlIndex]-1 > 19 :
-            return {'move': "request_discard", 'idx' : 19};
-        if discard < lowerBound :
-            return {'move': "request_discard", 'idx' : rlIndex-1};
-        else
-            return {'move': "request_discard", 'idx' : rlIndex+partOfRunLength[rlIndex]-1};
-        
-    pass
+            return {'move': "request_discard", 'idx' : 0}
+        if rlIndex + partOfRunLength[rlIndex] - 1 > 19:
+            return {'move': "request_discard", 'idx' : 19}
+        if discard < lowerBound:
+            return {'move': "request_discard", 'idx' : rlIndex-1}
+        else:
+            return {'move': "request_discard", 'idx' : rlIndex + partOfRunLength[rlIndex] - 1}
 
 
 def get_deck_exchange(s):
